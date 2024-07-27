@@ -30,6 +30,10 @@ public class ReviewController {
             @RequestBody Review review,
             @AuthenticationPrincipal PropertyUser user){
 
+        Review r = reviewRepository.findReviewByUserIdAndPropertyId(propertyId, user.getId());
+        if (r!=null){
+            return new ResponseEntity<>("You have already added a review for this property", HttpStatus.BAD_REQUEST);
+        }
         Optional<Property> opProperty = propertyRepository.findById(propertyId);
         Property property = opProperty.get();
         review.setProperty(property);
