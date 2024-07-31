@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -30,16 +31,27 @@ public class ReviewController {
             @RequestBody Review review,
             @AuthenticationPrincipal PropertyUser user){
 
-        Review r = reviewRepository.findReviewByUserIdAndPropertyId(propertyId, user.getId());
+//        Review r = reviewRepository.findReviewByUserIdAndPropertyId(propertyId, user.getId());
+//        if (r!=null){
+//            return new ResponseEntity<>("You have already added a review for this property", HttpStatus.BAD_REQUEST);
+//        }
+        Optional<Property> opProperty = propertyRepository.findById(propertyId);
+        Property property = opProperty.get();
+
+        Review r = reviewRepository.findReviewByUser(property, user);
         if (r!=null){
             return new ResponseEntity<>("You have already added a review for this property", HttpStatus.BAD_REQUEST);
         }
-        Optional<Property> opProperty = propertyRepository.findById(propertyId);
-        Property property = opProperty.get();
+
         review.setProperty(property);
         review.setPropertyUser(user);
 
         reviewRepository.save(review);
         return new ResponseEntity<>("Review added successfully", HttpStatus.OK);
+    }
+    @GetMapping("/userReviews")
+    public ResponseEntity<List<Review>> getUserReviews(@AuthenticationPrincipal PropertyUser user){
+        List<Review> reviews = reviewRepository.findByPropertyUser(user);
+        return new ResponseEntity<>(reviews, HttpStatus.OK);
     }
 }
